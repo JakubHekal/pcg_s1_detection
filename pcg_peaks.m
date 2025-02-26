@@ -21,8 +21,13 @@ function [locations, min_peak_value] = pcg_peaks(signal, Fs)
 
     i = 1;
     while i < length(locs)-1
-        min_peak_distance = 1.6 * abs(1 - general_peak_distance/3000) * general_peak_distance;
-        if locs(i+1) - locs(i) < min_peak_distance
+          min_peak_distance = 1.7 * abs(1 - general_peak_distance/3000) * general_peak_distance;
+        
+        if locs(i+1) - locs(i) < 0.6 * min_peak_distance && peaks(i+1) > 1.2 * peaks(i)
+            locs(i) = [];
+            peaks(i) = [];
+            general_peak_distance = median(diff(locs));
+        elseif locs(i+1) - locs(i) < min_peak_distance
             locs(i+1) = [];
             peaks(i+1) = [];
             general_peak_distance = median(diff(locs));
