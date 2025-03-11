@@ -5,7 +5,7 @@ function [locations, min_peak_value] = pcg_peaks(signal, Fs)
     
     min_peak_value = 2.5 * energy_std;
 
-    [peaks, locs] = findpeaks(signal, "MinPeakDistance", 300);
+    [peaks, locs] = findpeaks(signal, "MinPeakDistance", 700);
 
     i = 1;
     while i < length(peaks)

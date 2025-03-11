@@ -1,7 +1,5 @@
 function [normalized_energy] = pcg_energy(signal, Fs)
-    signal = abs(signal.^2);
-    energy = -signal .* log(signal);
-    
+    energy = abs(signal .^ 2);
     energy = energy - movmean(energy, Fs/2);
     energy(energy < 0) = 0;
         
