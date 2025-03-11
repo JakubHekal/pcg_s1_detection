@@ -1,9 +1,9 @@
 close all; clear; clc
-load('PCG_dataset.mat');
-% PCG_dataset = PCG_dataset_val;
+load('PCG_dataset_val.mat');
+PCG_dataset = PCG_dataset_val;
 
 Fs = 3000;
-index = 379; % 426 564 544 601
+index = 494; % 426 564 544 601
 PCG = PCG_dataset(index).PCG;
 S1_real = PCG_dataset(index).S1_pos;
 hr_real = mode(diff(S1_real));
