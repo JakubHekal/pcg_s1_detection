@@ -1,6 +1,5 @@
 function [S1position] = S1detect(PCG, Fs)
-    filtered = pcg_prefilter(PCG, Fs);
-    energy = pcg_energy(filtered, Fs);    
+    energy = pcg_energy(PCG, Fs);    
     [locations, ~] = pcg_peaks(energy, Fs);
     S1position = locations;
 end
