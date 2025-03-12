@@ -1,4 +1,4 @@
-function [locations, min_peak_value] = pcg_peaks(signal, Fs)
+function [locations, min_peak_value] = pcg_peaks(pcg, signal, Fs)
 
     window_size = Fs;
     energy_std = movstd(signal, window_size, "Endpoints", std(signal));
@@ -35,7 +35,13 @@ function [locations, min_peak_value] = pcg_peaks(signal, Fs)
             i = i + 1;
         end
     end
+    
+    hw = 20;
+    for i = 1:length(locs)
+       c = locs(i);
+       s = pcg(max([1 c - hw]): min([length(pcg) c + hw]));
+       locs(i) = c - hw + find(max(s));
+    end
        
     locations = locs;
 end
-
