@@ -3,7 +3,7 @@ load('PCG_dataset.mat');
 % PCG_dataset = PCG_dataset_val;
 
 Fs = 3000;
-index = 426; % 426 564 544 601
+index = 606; % 426 564 544 601
 PCG = PCG_dataset(index).PCG;
 S1_real = PCG_dataset(index).S1_pos;
 hr_real = mode(diff(S1_real));
@@ -24,7 +24,7 @@ figure;
 hold on
 plot(energy);
 xline(locations, "Color", "magenta");
-xline(S1_real, "Color", "green");
+xline(S1_real, "Color", "green", "LineStyle", "--");
 plot(min_peak);
 hold off
 title('Peaks');

@@ -1,47 +1,61 @@
 function [locations, min_peak_value] = pcg_peaks(pcg, signal, Fs)
 
-    window_size = Fs;
-    energy_std = movstd(signal, window_size, "Endpoints", std(signal));
+    % Adaptive threshold calculation
+    min_peak_value = movstd(signal, Fs, "Endpoints", mean(signal));
     
-    min_peak_value = 2.5 * energy_std;
-
+    % Find all peaks
     [peaks, locs] = findpeaks(signal, "MinPeakDistance", 700);
-
-    i = 1;
-    while i < length(peaks) + 1
-        if peaks(i) < min_peak_value(locs(i))
-            locs(i) = [];
-            peaks(i) = [];
-        else
-            i = i + 1;
-        end
-    end
-
-    general_peak_distance = mode(diff(locs));
-
+    
+    % Removing peaks that are under threshold
+    minimal_threshold_mask = (peaks >= min_peak_value(locs)) & (locs > 50);
+    peaks = peaks(minimal_threshold_mask);
+    locs = locs(minimal_threshold_mask);
+    
+    % Peak filtration (values in seconds)
+    S1_S1_interval = [0.5 1.3] * Fs;
+    S1_S2_interval = [0.2 0.4] * Fs;
+    
     i = 1;
     while i < length(locs)
-        min_peak_distance = 1.7 * abs(1 - general_peak_distance/3500) * general_peak_distance;
-        
-        if locs(i+1) - locs(i) < 0.5 * min_peak_distance && peaks(i+1) > 1.05 * peaks(i)
-            locs(i) = [];
+       j = i + 1;
+       while j < length(locs)
+           interval = locs(j) - locs(i);
+           
+           if interval >= S1_S1_interval(1) && interval <= S1_S1_interval(2)
+               i = j;
+               break;
+           elseif interval > S1_S1_interval(2) || interval < S1_S2_interval(1)
+               break;
+           elseif interval >= S1_S2_interval(1) && interval <= S1_S2_interval(2)
+               peaks(j) = [];
+               locs(j) = [];
+           else
+               i = j;
+               break;
+           end
+       end
+       
+       if i ~= j
             peaks(i) = [];
-            general_peak_distance = mode(diff(locs));
-        elseif locs(i+1) - locs(i) < min_peak_distance
-            locs(i+1) = [];
-            peaks(i+1) = [];
-            general_peak_distance = mode(diff(locs));
-        else
-            i = i + 1;
-        end
+            locs(i) = [];
+       end
     end
     
-    hw = 20;
-    for i = 1:length(locs)
+    % Moving peaks to find their true maximum
+    hw = 30;
+    i = 1;
+    while i < length(locs)
        c = locs(i);
-       s = pcg(max([1 c - hw]): min([length(pcg) c + hw]));
-       locs(i) = c - hw + find(max(s));
+       s = pcg(max([1, c - hw]): min([length(pcg), c + hw]));
+       m = max([1, c - hw]) + find(max(s));
+       if isempty(m)
+           locs(i) = [];
+       else
+           locs(i) = m;
+           i = i + 1;
+       end
     end
        
     locations = locs;
 end
+
