@@ -1,6 +1,6 @@
 function [locations, min_peak_value, normalized_energy] = pcg_peaks(signal, Fs)
     % Bandpass filtering
-    [b, a] = butter(4, [10 50] / (Fs / 2), "bandpass");
+    [b, a] = butter(3, [10 50] / (Fs / 2), "bandpass");
     filtered = filtfilt(b, a, signal);
 
     % TKEO implementation
@@ -20,24 +20,26 @@ function [locations, min_peak_value, normalized_energy] = pcg_peaks(signal, Fs)
     [peaks, locs] = findpeaks(normalized_energy, "MinPeakDistance", Fs/4);
     
     % Removing peaks that are under threshold
-    minimal_threshold_mask = (peaks >= min_peak_value(locs)) & (locs > 500);
+    minimal_threshold_mask = peaks >= min_peak_value(locs);
     peaks = peaks(minimal_threshold_mask);
     locs = locs(minimal_threshold_mask);
     
     % Peak filtration (values in seconds)
     S1_S1_interval = [0.4 1.5] * Fs;
-    S1_S2_interval = [0.2 0.4] * Fs; 
     
     i = 1;
     locations = [];
     while i <= length(locs)
-       candidates = locs(i:end);
-       S1_candidates = candidates((candidates - locs(i) <= S1_S1_interval(2)) & (candidates - locs(i) >= S1_S1_interval(1)));
-       S2_candidates = candidates((candidates - locs(i) <= S1_S2_interval(2)) & (candidates - locs(i) >= S1_S2_interval(1)));
+       candidates = locs(i+1:end);
+       S1_candidates = candidates((candidates - locs(i) >= S1_S1_interval(1)) & (candidates - locs(i) <= S1_S1_interval(2)));
+       other_candidates = candidates(candidates - locs(i) < S1_S1_interval(1));
        
-       if ~isempty(S2_candidates)
-           locs = setdiff(locs, S2_candidates, 'stable');
+       if ~isempty(other_candidates) 
+           locs = setdiff(locs, other_candidates, 'stable');
        end
+       
+       % TODO: add S1 candidates clasification
+       % using previous peak value similarity
        
        if ~isempty(S1_candidates)
            if isempty(locations)
@@ -49,7 +51,7 @@ function [locations, min_peak_value, normalized_energy] = pcg_peaks(signal, Fs)
     end
     
     % Moving peaks to find their true maximum
-    hw = 30;
+    hw = 40;
     i = 1;
     while i < length(locations)
        c = locations(i);
